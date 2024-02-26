@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>6</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: Lato, sans-serif;
+            color: #0D0000;
+        }
+        header {
+            padding: 6px 10%;
+        }
+        h1 {
+            display: inline-block;
+            margin-right: 20px;
+            color: #001323;
+        }
+        h2 {
+            display: inline-block;
+            color: #001323;
+        }
+        #map {
+            width: 80%;
+            height: 540px;
+            margin: 10px auto;
+        }
+        footer {
+            padding: 6px 10%;
+            width: 80%;
+        }
+        p {
+            font-size: 1em;
+            color: #001323;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>United States Electric Power Generation</h1>
+        <h2>Comparing Biomass, Geothermal, and Solar Energy</h2>
+    </header>
+
+    <div id='map'></div>
+
+    <footer>
+        <p>Map authored by Julia Schumacher</p>
+        <p>First, I used the "choose a suitable map library" principle to change the basemap from a dark them to a light theme 
+            so it was easier to see the circle markers. Then I made the circle markers 
+            smaller to declutter the map and make the spatial trends more visually prominant. I also made the 
+            radius of the outline smaller so it was easier to see  the infill of the circle. Then I changed the popups to appear
+            when the 'mouseover' function was used so it was easier to see the popups on the smaller circles. Finally, I changed the fill color
+            of the circle markers to black so it was easier to see over the white basemap.   </p> 
+    </footer>
+
+    <script src="power-plants.js"></script>
+    <script>
+
+      var map = L.map('map', {
+          center: [36,-94],
+          zoom: 4,
+      });
+      
+
+     /*  var tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+          subdomains: 'abcd',
+          maxZoom: 19
+      });  
+      
+      tiles.addTo(map); */
+
+      /* var map = L.map('map'); */
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/light-v11', 
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoianVsaWE0MjIiLCJhIjoiY2xzZHZxNmw4MTUyMzJrcWw1N2hxbjhnZCJ9.Ps5fnTU_3L8GJB5QBvXm6Q'
+        }).addTo(map);
+
+        
+         
+    //step 2
+      
+ //   plants.features.sort(function(a, b) {
+   // return b.properties.capacity_mw - a.properties.capacity_mw;
+//});
+    
+    //                                              ---BIOMASS---
+    //step 1    and then change to step 3 with 'return'
+      var Biomass = L.geoJson(plants, {
+          pointToLayer: function(feature,latlng) {
+              console.log(feature.properties.fuel_source)
+              return L.circleMarker(latlng, {
+                 color: 'green',
+                 weight: 1,
+                 fillColor: 'green',
+                 fillOpacity: .5,
+                 radius: getRadius(feature.properties.capacity_mw) //step4
+              });   
+          },
+          
+      filter : function(feature, layer){
+              if(feature.properties.fuel_source['Biomass']){
+                  return feature
+              };
+             // console.log(feature);
+          },
+         
+    //step 5
+    onEachFeature : function(feature,layer) {
+    layer.on('mouseover', function() {
+    layer.setStyle({
+        fillColor: 'black'
+    });
+});
+layer.on('mouseout', function() {
+    layer.setStyle({
+        fillColor: 'green'
+    });
+});
+
+
+          //step 6  
+          
+          var name = feature.properties.plant_name
+          var capacity = feature.properties.capacity_mw.toLocaleString()
+          var fuel = feature.properties.fuel_source
+      
+                                                
+          
+          var B_popup = ("<b>"+name+"</b><br>"
+              +capacity+ " MW" + "<br>")
+                       layer.bindTooltip(B_popup);
+}
+            
+      }).addTo(map);
+//step 4
+        function getRadius(area){
+        var radius = Math.sqrt(area/Math.PI);
+        return radius *.6   
+    }
+    
+    //                                              ---GEOTHERMAL---
+    //step 1    and then change to step 3 with 'return'
+      var Geothermal = L.geoJson(plants, {
+          pointToLayer: function(feature,latlng) {
+              console.log(feature.properties.fuel_source)
+              return L.circleMarker(latlng, {
+                 color: 'blue',
+                 weight: 1,
+                 fillColor: 'blue',
+                 fillOpacity: .5,
+                 radius: getRadius(feature.properties.capacity_mw) //step4 multiply by 4
+              });   
+          }, 
+          
+      filter : function(feature, layer){
+              if(feature.properties.fuel_source['Geothermal']){
+                  return feature
+              };
+             // console.log(feature);
+          },
+         
+    //step 5
+    onEachFeature : function(feature,layer) {
+    layer.on('mouseover', function() {
+    layer.setStyle({
+        fillColor: 'black'
+    });
+});
+layer.on('mouseout', function() {
+    layer.setStyle({
+        fillColor: 'blue'
+    });
+});
+
+
+          //step 6  
+          
+          var name = feature.properties.plant_name
+          var capacity = feature.properties.capacity_mw.toLocaleString()
+          var fuel = feature.properties.fuel_source
+      
+                                                
+          
+          var popup = ("<b>"+name+"</b><br>"
+              +capacity+ " MW" + "<br>")
+                       layer.bindTooltip(popup)
+          }
+          
+          
+      }).addTo(map);
+//step 4
+        function getRadius(area){
+        var radius = Math.sqrt(area/Math.PI);
+        return radius *.6   
+    } 
+
+
+    //                                              ---Solar---
+    //step 1    and then change to step 3 with 'return'
+    var Solar = L.geoJson(plants, {
+          pointToLayer: function(feature,latlng) {
+              console.log(feature.properties.fuel_source)
+              return L.circleMarker(latlng, {
+                 color: 'red',
+                 weight: 1,
+                 fillColor: 'red',
+                 fillOpacity: .5,
+                 radius: getRadius(feature.properties.capacity_mw) //step4
+              });   
+          },
+          
+      filter : function(feature, layer){
+              if(feature.properties.fuel_source['Solar']){
+                  return feature
+              };
+             // console.log(feature);
+          },
+         
+    //step 5
+    onEachFeature : function(feature,layer) {
+    layer.on('mouseover', function() {
+    layer.setStyle({
+        fillColor: 'black'
+    });
+});
+layer.on('mouseout', function() {
+    layer.setStyle({
+        fillColor: 'red'
+    });
+});
+
+
+          //step 6  
+          
+          var name = feature.properties.plant_name
+          var capacity = feature.properties.capacity_mw.toLocaleString()
+          var fuel = feature.properties.fuel_source
+      
+                                                
+          
+          var popup = ("<b>"+name+"</b><br>"
+              +capacity+ " MW" + "<br>")
+                       layer.bindTooltip(popup)
+          }
+          
+          
+      }).addTo(map);
+//step 4
+        function getRadius(area){
+        var radius = Math.sqrt(area/Math.PI);
+        return radius *0.6   
+    } 
+
+
+    var sourceLayers = {
+       "<b style='color:green'>Biomass</b>": Biomass,
+       "<b style='color:blue'>Geothermal</b>": Geothermal,
+       "<b style='color:red'>Solar</b>": Solar
+    
+    };
+       L.control.layers(null, sourceLayers, {collapsed:false} )
+       
+       .addTo(map);
+
+
+   var legend = L.control({position: 'bottomright'});
+
+
+
+    </script>
+    
+</body>
+
+</html>
